@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你的关系安全词</title>
+<style>
+  :root {
+    --ink: #1a1814;
+    --ink-soft: #6b6760;
+    --ink-faint: #b8b5b0;
+    --surface: #f7f5f1;
+    --card: #ffffff;
+    --border: #e8e4de;
+    --se: #185FA5; --se-bg: #E6F1FB; --se-mid: #378ADD;
+    --an: #993556; --an-bg: #FBEAF0; --an-mid: #D4537E;
+    --av: #3C3489; --av-bg: #EEEDFE; --av-mid: #7F77DD;
+    --fa: #633806; --fa-bg: #FAEEDA; --fa-mid: #BA7517;
+    --fw: #27500A; --fw-bg: #EAF3DE; --fw-mid: #639922;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2.5rem 1.25rem 5rem;
+  }
+  .app { width: 100%; max-width: 560px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* INTRO */
+  .intro-eyebrow {
+    font-size: 11px; letter-spacing: .16em; color: var(--ink-faint);
+    text-transform: uppercase; margin-bottom: 2.25rem;
+  }
+  .intro-title {
+    font-size: 38px; font-weight: 600; line-height: 1.2;
+    letter-spacing: -.02em; margin-bottom: 1.75rem;
+  }
+  .intro-title em {
+    font-style: normal; position: relative; display: inline-block;
+  }
+  .intro-title em::after {
+    content: '';
+    position: absolute; left: 0; bottom: 3px; width: 100%; height: 2px;
+    background: var(--an-mid); border-radius: 1px;
+  }
+  .intro-body {
+    margin-bottom: 2.25rem;
+  }
+  .intro-body p {
+    font-size: 15px; color: var(--ink-soft); line-height: 1.85;
+    margin-bottom: .9rem;
+  }
+  .intro-body p:last-child { margin-bottom: 0; }
+  .intro-body p.accent {
+    font-size: 14px; color: var(--ink-faint);
+    font-style: italic; border-left: 2px solid var(--border);
+    padding-left: .9rem; margin-top: 1.25rem;
+  }
+  .intro-meta {
+    display: flex; gap: 1.75rem; margin-bottom: 2.5rem;
+    padding-top: 1.5rem; border-top: 0.5px solid var(--border);
+  }
+  .meta-item { font-size: 13px; color: var(--ink-faint); }
+  .meta-item strong {
+    color: var(--ink-soft); font-weight: 500;
+    display: block; font-size: 22px; margin-bottom: 2px;
+  }
+  .start-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--ink); color: #fff;
+    border: none; border-radius: 100px;
+    padding: .9rem 2.25rem; font-size: 15px; cursor: pointer;
+    transition: opacity .15s, transform .15s; letter-spacing: .01em;
+  }
+  .start-btn:hover { opacity: .85; transform: translateY(-1px); }
+
+  /* PROGRESS */
+  .progress-wrap { margin-bottom: 1.75rem; }
+  .progress-top {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: .55rem;
+  }
+  .progress-label { font-size: 11px; color: var(--ink-faint); letter-spacing: .06em; }
+  .progress-count { font-size: 11px; color: var(--ink-faint); }
+  .progress-track { height: 2px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; background: var(--ink); border-radius: 2px;
+    transition: width .4s ease;
+  }
+
+  /* QUESTION */
+  .q-card {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: 16px; padding: 1.75rem 1.75rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .q-phase { font-size: 11px; letter-spacing: .1em; color: var(--ink-faint); margin-bottom: .65rem; }
+  .q-text { font-size: 17px; font-weight: 500; line-height: 1.6; margin-bottom: 1.5rem; letter-spacing: -.01em; }
+  .opts { display: flex; flex-direction: column; gap: 7px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 11px;
+    padding: .8rem 1rem; border-radius: 10px;
+    border: 0.5px solid var(--border);
+    background: transparent; cursor: pointer; text-align: left;
+    transition: border-color .12s, background .12s; width: 100%;
+  }
+  .opt:hover { background: var(--surface); border-color: var(--ink-faint); }
+  .opt.selected { border-color: var(--ink); background: #f0ede8; }
+  .opt-key { font-size: 11px; font-weight: 600; color: var(--ink-faint); min-width: 16px; margin-top: 2px; }
+  .opt-text { font-size: 14px; color: var(--ink); line-height: 1.6; }
+  .opts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .opts-2 .opt { flex-direction: column; gap: 5px; align-items: flex-start; }
+  .opts-2 .opt-text { font-size: 13px; }
+
+  /* RESULT */
+  .result-wrap { }
+  .result-type-block {
+    border-radius: 16px; padding: 1.75rem;
+    margin-bottom: 10px; border: 0.5px solid transparent;
+  }
+  .rt-label { font-size: 11px; letter-spacing: .1em; opacity: .65; margin-bottom: .4rem; }
+  .rt-name { font-size: 30px; font-weight: 600; letter-spacing: -.02em; margin-bottom: .2rem; }
+  .rt-en { font-size: 12px; opacity: .55; margin-bottom: 1.1rem; letter-spacing: .02em; }
+  .rt-belief {
+    font-size: 14px; font-style: italic; line-height: 1.65;
+    padding: .85rem 1.1rem; background: rgba(255,255,255,.5);
+    border-radius: 10px; margin-bottom: 1rem;
+    border-left: 2px solid currentColor; opacity: .9;
+  }
+  .rt-desc { font-size: 13.5px; line-height: 1.8; opacity: .82; }
+
+  .result-word-block {
+    background: var(--card); border: 0.5px solid var(--border);
+    border-radius: 16px; padding: 1.75rem;
+  }
+  .rw-label { font-size: 11px; letter-spacing: .1em; color: var(--ink-faint); margin-bottom: .5rem; }
+  .rw-word { font-size: 46px; font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin-bottom: .2rem; }
+  .rw-sub { font-size: 12px; color: var(--ink-faint); margin-bottom: 1.4rem; }
+  .rw-divider { height: 0.5px; background: var(--border); margin: 1.1rem 0; }
+  .rw-section { margin-bottom: 1rem; }
+  .rw-section:last-of-type { margin-bottom: 0; }
+  .rw-slabel { font-size: 11px; letter-spacing: .08em; color: var(--ink-faint); margin-bottom: .35rem; }
+  .rw-text { font-size: 13.5px; color: var(--ink-soft); line-height: 1.78; }
+  .rw-text strong { color: var(--ink); font-weight: 500; }
+
+  .dual-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: .75rem 0 1.25rem; }
+  .dual-card { padding: 1.1rem; border-radius: 12px; border: 0.5px solid var(--border); }
+  .dual-word { font-size: 26px; font-weight: 600; margin-bottom: .35rem; letter-spacing: -.01em; }
+  .dual-text { font-size: 12px; color: var(--ink-soft); line-height: 1.65; }
+
+  .restart-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--ink-faint); background: none; border: none;
+    cursor: pointer; padding: 0; margin-top: 1.5rem; transition: color .15s;
+  }
+  .restart-btn:hover { color: var(--ink); }
+
+  .theme-se { background: var(--se-bg); border-color: #c5daf4 !important; color: var(--se); }
+  .theme-an { background: var(--an-bg); border-color: #f0c0d0 !important; color: var(--an); }
+  .theme-av { background: var(--av-bg); border-color: #cccaf5 !important; color: var(--av); }
+  .theme-fa { background: var(--fa-bg); border-color: #f5ddb5 !important; color: var(--fa); }
+  .theme-fw { background: var(--fw-bg); border-color: #c5dda0 !important; color: var(--fw); }
+  .c-se { color: var(--se); } .c-an { color: var(--an); }
+  .c-av { color: var(--av); } .c-fa { color: var(--fa); } .c-fw { color: var(--fw); }
+</style>
+<style>
+:root{--ink:#4a3426;--ink-soft:#7a604d;--ink-faint:#b59a82;--surface:#f8efe0;--card:#fffaf0;--border:#e2cfae;--rose:#c9605a;--serif:"Songti SC","Noto Serif SC","STSong","SimSun",serif}
+body{background-color:#f8efe0;background-image:radial-gradient(#ead9bb 1.2px,transparent 1.6px);background-size:20px 20px;color:var(--ink)}
+#screen-intro{text-align:center}
+.bear{display:block;width:150px;margin:0 auto 1.1rem;filter:drop-shadow(0 6px 0 rgba(140,95,50,.12))}
+.intro-eyebrow{color:var(--ink-faint);margin-bottom:1.25rem}
+.intro-title{font-family:var(--serif);font-size:36px;color:var(--ink);margin-bottom:1.25rem}
+.intro-title em::after{height:4px;bottom:2px;border-radius:0;background:repeating-linear-gradient(90deg,var(--rose) 0 7px,transparent 7px 11px)}
+.intro-body{margin-bottom:1.75rem}
+.intro-body p{font-family:var(--serif);font-size:18px;color:var(--ink-soft);margin:0}
+.intro-meta{justify-content:center;border-top:2px dashed var(--border);padding-top:1.25rem}
+.meta-item strong{font-family:var(--serif);color:var(--rose)}
+.start-btn{background:var(--rose);outline:2px dashed rgba(255,250,240,.75);outline-offset:-7px;padding:1rem 2.6rem;box-shadow:0 4px 0 #a64a45}
+.start-btn:hover{opacity:1;transform:translateY(-2px);box-shadow:0 6px 0 #a64a45}
+.progress-track{height:6px;border-radius:0;background:repeating-linear-gradient(90deg,#e2cfae 0 7px,transparent 7px 11px)}
+.progress-fill{border-radius:0;background:repeating-linear-gradient(90deg,var(--rose) 0 7px,transparent 7px 11px)}
+.q-card{position:relative;background:var(--card);border:2px dashed #d9bf98;border-radius:24px;padding:2rem 1.75rem 1.6rem;box-shadow:0 6px 0 #ecdcc0,0 14px 28px rgba(120,80,40,.08)}
+.q-card::before{content:"";position:absolute;top:-13px;right:26px;width:46px;height:32px;background:#e9b5a5;border:1.5px dashed #b5654f;border-radius:4px;transform:rotate(6deg)}
+.q-phase{color:var(--rose)}
+.q-text{font-family:var(--serif);font-size:19px;color:var(--ink)}
+.opt{border:1.5px dashed #dcc6a2;border-radius:14px;background:rgba(255,255,255,.55)}
+.opt:hover{background:#fff1d9;border-color:var(--rose)}
+.opt.selected{background:#fbe0d6;border:1.5px solid var(--rose)}
+.opt-key{color:var(--rose);font-weight:700}
+.result-wrap .bear{width:96px;margin-bottom:.75rem}
+.result-type-block{border-width:2px;border-style:dashed;border-radius:24px}
+.rt-name,.rw-word,.dual-word{font-family:var(--serif)}
+.result-word-block{background:var(--card);border:2px dashed #d9bf98;border-radius:24px;box-shadow:0 6px 0 #ecdcc0}
+.dual-card{border:1.5px dashed #dcc6a2;border-radius:16px}
+.rw-divider{height:0;background:none;border-top:2px dashed var(--border)}
+.restart-btn:hover{color:var(--rose)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs><symbol id="bear" viewBox="0 0 200 220">
+<ellipse cx="100" cy="188" rx="50" ry="36" fill="#d9a86c"/>
+<ellipse cx="62" cy="190" rx="14" ry="22" fill="#d09a5c" transform="rotate(20 62 190)"/>
+<ellipse cx="138" cy="190" rx="14" ry="22" fill="#d09a5c" transform="rotate(-20 138 190)"/>
+<path d="M100 198C80 182 78 167 90 165C96 164 100 169 100 169C100 169 104 164 110 165C122 167 120 182 100 198Z" fill="#c9605a" stroke="#fff3e6" stroke-width="1.5" stroke-dasharray="3 2.5"/>
+<circle cx="52" cy="52" r="26" fill="#d9a86c"/><circle cx="52" cy="52" r="14" fill="#f0cfa0"/>
+<circle cx="148" cy="52" r="26" fill="#d9a86c"/><circle cx="148" cy="52" r="14" fill="#f0cfa0"/>
+<circle cx="100" cy="102" r="62" fill="#e0b078"/>
+<ellipse cx="100" cy="124" rx="27" ry="20" fill="#f6e2c0"/>
+<ellipse cx="100" cy="114" rx="8" ry="6" fill="#5a3a28"/>
+<path d="M100 120v6M100 126q-8 7-15 1M100 126q8 7 15 1" stroke="#5a3a28" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+<circle cx="76" cy="94" r="8" fill="#3d2a1e"/><circle cx="73.5" cy="91.5" r="2.5" fill="#fff"/>
+<path d="M118 87l12 12M130 87l-12 12" stroke="#3d2a1e" stroke-width="3.5" stroke-linecap="round"/>
+<rect x="128" y="52" width="30" height="24" rx="4" fill="#e9b5a5" stroke="#b5654f" stroke-width="1.5" stroke-dasharray="3 2.5" transform="rotate(14 143 64)"/>
+<path d="M58 110L72 132" stroke="#9a5a45" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M56.8 118.5L66.2 112.5M60.3 124L69.7 118M63.8 129.5L73.2 123.5" stroke="#9a5a45" stroke-width="2.2" stroke-linecap="round"/>
+</symbol></defs></svg>
+<div class="app">
+
+  <!-- INTRO -->
+  <div id="screen-intro" class="screen active">
+    <svg class="bear" viewBox="0 0 200 220"><use href="#bear" width="200" height="220"/></svg>
+    <div class="intro-eyebrow">关系心理 · 安全词测试</div>
+    <h1 class="intro-title">你需要听到<br>哪<em>一句话</em></h1>
+    <div class="intro-body">
+      <p>我们都想被靠近，又都怕靠得太近。</p>
+    </div>
+    <div class="intro-meta">
+      <div class="meta-item"><strong>14</strong>道题</div>
+      <div class="meta-item"><strong>5</strong>种类型</div>
+      <div class="meta-item"><strong>10</strong>个安全词</div>
+    </div>
+    <button class="start-btn" onclick="startQuiz()">开始测试 →</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-top">
+        <span class="progress-label" id="prog-label">第一轮 · 了解你的模式</span>
+        <span class="progress-count" id="prog-count">1 / 14</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="q-card">
+      <div class="q-phase" id="q-phase"></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="opts-wrap" class="opts"></div>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" class="screen">
+    <div class="result-wrap">
+      <svg class="bear" viewBox="0 0 200 220"><use href="#bear" width="200" height="220"/></svg>
+      <div class="result-type-block" id="type-block">
+        <div class="rt-label">你的依恋类型</div>
+        <div class="rt-name" id="rt-name"></div>
+        <div class="rt-en" id="rt-en"></div>
+        <div class="rt-belief" id="rt-belief"></div>
+        <div class="rt-desc" id="rt-desc"></div>
+      </div>
+      <div class="result-word-block" id="word-block"></div>
+      <button class="restart-btn" onclick="restartQuiz()">↺ 重新测试</button>
+    </div>
+  </div>
+
+</div>
+<script>
+const Q1 = [
+  { text:"朋友突然冷淡了，你最先有的反应是？", opts:[
+    {text:"想直接问他，搞清楚发生了什么",type:"SE"},
+    {text:"开始反复回想自己是不是哪里做错了",type:"AN"},
+    {text:"感觉到了，但决定先给彼此一些空间",type:"AV"},
+    {text:"又想问又怕问了关系更僵，卡在那里",type:"FA"},
+    {text:"觉得可能是自己的问题，想先主动道歉",type:"FW"}
+  ]},
+  { text:"你在认真说一件事，对方突然看手机，你会？", opts:[
+    {text:"直接说「你能先放下手机吗，我在跟你说话」",type:"SE"},
+    {text:"说话声音越来越小，心里开始怀疑对方是不是不想听",type:"AN"},
+    {text:"内心有点不爽，但不说，默默把话收回去",type:"AV"},
+    {text:"想说但怕对方觉得自己小题大做，憋着",type:"FA"},
+    {text:"继续说完，假装没注意到，不想让气氛变奇怪",type:"FW"}
+  ]},
+  { text:"关系里出现了一次争吵，和好之后你通常？", opts:[
+    {text:"等情绪平稳后，复盘一下这次吵架的原因",type:"SE"},
+    {text:"表面和好但心里还是不踏实，需要对方多给一些确认",type:"AN"},
+    {text:"和好了就算了，不想再翻这件事",type:"AV"},
+    {text:"表面和好，但开始担心关系是不是已经出现了裂缝",type:"FA"},
+    {text:"主动道歉，不管对错，先让关系回到正轨再说",type:"FW"}
+  ]},
+  { text:"对方说「我最近需要一个人待着」，你感受到的是？", opts:[
+    {text:"理解，每个人都需要独处时间，等他准备好再联系",type:"SE"},
+    {text:"心里一紧，开始想是不是自己做了什么让他想逃",type:"AN"},
+    {text:"完全理解，自己也经常有这种需求",type:"AV"},
+    {text:"理解他，但同时也害怕这个「独处」会变成疏远",type:"FA"},
+    {text:"嘴上说没问题，但开始想自己能做什么让他感觉好一点",type:"FW"}
+  ]},
+  { text:"你鼓起勇气说了一件很在意的事，对方沉默了几秒，你？", opts:[
+    {text:"等他回应，这几秒的沉默在正常范围内",type:"SE"},
+    {text:"开始后悔说了，这几秒感觉像几分钟，心跳加速",type:"AN"},
+    {text:"有点后悔开口，觉得不说可能更好",type:"AV"},
+    {text:"不知道该不该继续说，身体有点僵住",type:"FA"},
+    {text:"迅速补一句「当然你不用在意，我随便说说的」",type:"FW"}
+  ]},
+  { text:"一段关系开始变得很亲密，你内心的状态是？", opts:[
+    {text:"感觉自然，享受这种连接",type:"SE"},
+    {text:"很开心，但同时开始担心这种好会不会突然消失",type:"AN"},
+    {text:"有些不适应，需要时间调整，偶尔想退回去一点",type:"AV"},
+    {text:"一半想靠近，一半在等另一只鞋掉下来",type:"FA"},
+    {text:"开始更努力，想让对方觉得值得继续亲密",type:"FW"}
+  ]},
+  { text:"关系里你最难开口说的一句话是？", opts:[
+    {text:"「这件事我需要你认真对待」",type:"SE"},
+    {text:"「你最近是不是不太想理我」",type:"AN"},
+    {text:"「我现在不想说话，等我缓缓」",type:"AV"},
+    {text:"「我有点害怕，但我说不清楚在怕什么」",type:"FA"},
+    {text:"「其实我也有委屈」",type:"FW"}
+  ]},
+  { text:"有人问你「你在这段关系里快乐吗」，你第一反应是？", opts:[
+    {text:"认真想一想，然后诚实回答",type:"SE"},
+    {text:"快乐，但同时有很多不安全感",type:"AN"},
+    {text:"大部分时候还好，但有时候需要一个人消化很多东西",type:"AV"},
+    {text:"不确定，快乐和害怕总是同时存在",type:"FA"},
+    {text:"应该快乐吧，对方没有离开，我也没做错什么",type:"FW"}
+  ]}
+];
+
+const Q2 = {
+  SE:{ w1:"和我一起", w2:"相信我", questions:[
+    {text:"在关系里，你更渴望的是？", a:"有人真的愿意陪着你一起经历，不只是旁观", b:"有人相信你有能力处理好自己的事，不需要替你操心"},
+    {text:"对方说「我支持你」，你更希望他接下来做的是？", a:"真的出现在你身边，一起面对", b:"放手让你去做，不插手，不怀疑"},
+    {text:"关系里让你感到最温暖的时刻是？", a:"两个人一起做一件事，哪怕很普通", b:"对方在你没有解释的情况下，就已经信任了你"},
+    {text:"你感到孤独时，最需要的是？", a:"有人来陪你，不需要说什么，在就够了", b:"有人相信你可以走出来，不对你过度担心"},
+    {text:"你做了一个重要决定，你更希望对方的反应是？", a:"「好，我们一起」", b:"「我相信你，你做的决定一定有你的道理」"},
+    {text:"什么样的话让你感觉关系是安全的？", a:"「不管发生什么，我都在」", b:"「我不需要你解释，我信任你」"}
+  ]},
+  AN:{ w1:"抱抱我", w2:"选择我", questions:[
+    {text:"你感到不安时，最能让你平静下来的是？", a:"对方拉着你，什么都不用说", b:"对方清楚地告诉你，他选择留在你身边"},
+    {text:"吵架和好之后，你最需要的一个动作是？", a:"一个拥抱，感受到他还在", b:"他主动说「我选择你，这件事不会改变」"},
+    {text:"对方沉默了很久，你最希望他打破沉默的方式是？", a:"走过来抱住你", b:"开口说「我没有要离开，我还是选择你」"},
+    {text:"你内心最深的不安是哪一种？", a:"感受不到对方的存在和温度", b:"不知道在他心里自己是不是唯一的选择"},
+    {text:"什么样的时刻让你觉得关系是稳的？", a:"对方用身体语言告诉你他在，比如握手、靠近", b:"对方在有其他选择的情况下，还是选了你"},
+    {text:"你感到委屈时，最希望对方做的是？", a:"先抱住你，话之后再说", b:"先告诉你「我不会走，你是我的选择」"}
+  ]},
+  AV:{ w1:"给我空间", w2:"慢慢来", questions:[
+    {text:"你在关系里感到压力时，最需要的是？", a:"对方退后一步，给你一些独处的时间", b:"对方告诉你不用急，按你的节奏来"},
+    {text:"亲密关系里最让你窒息的是？", a:"对方随时需要你的回应，没有喘息空间", b:"对方催你做决定，催你表态，催你靠近"},
+    {text:"你需要独处时，最希望对方说的是？", a:"「去吧，我在这里等你」", b:"「不急，等你准备好了再来」"},
+    {text:"关系里什么时候你感到最自在？", a:"对方不追问，给你足够的物理和心理空间", b:"对方不设时间表，允许关系自然地推进"},
+    {text:"对方做什么会让你更愿意靠近？", a:"主动退后，让你感到没有压力", b:"告诉你不需要表现得多亲密，慢慢来就好"},
+    {text:"你在关系里最不需要的是？", a:"被过度关注，感觉每个动作都被观察", b:"被催促，感觉关系在按对方的时间表推进"}
+  ]},
+  FA:{ w1:"我在这里", w2:"靠近我", questions:[
+    {text:"你在关系里最渴望的感觉是？", a:"对方稳稳地在那里，不追也不消失", b:"有人真的想让你靠近，而且你知道靠近是安全的"},
+    {text:"你对一段关系感到害怕时，什么能让你稍微安心？", a:"对方没有因为你的退缩而消失，还在原地", b:"对方主动向你伸出手，但不强迫你握住"},
+    {text:"你在关系里最怕的不是离开，而是？", a:"对方因为你忽冷忽热而放弃等待", b:"自己永远走不到真正亲密的那一步"},
+    {text:"对方说什么会让你感到最安全？", a:"「我哪里都不去，你慢慢来」", b:"「我想让你靠近我，你准备好了随时都可以」"},
+    {text:"你退缩了，对方的哪种反应让你更想回来？", a:"他还在，没有消失，也没有追", b:"他重新向你发出邀请，让你知道门还开着"},
+    {text:"关系里什么时刻你感到最孤独？", a:"对方因为你的距离而离开，证明了靠近真的有风险", b:"你想靠近但不知道对方是否真的欢迎你"}
+  ]},
+  FW:{ w1:"我认可你", w2:"你可以做自己", questions:[
+    {text:"在关系里，什么样的话最让你放松？", a:"「你做的已经很好了，我看见你了」", b:"「你不需要表现，真实的你就很好」"},
+    {text:"你最疲惫的时候，通常是因为？", a:"付出了很多，但没有人说一句「我认可你」", b:"一直在扮演别人期待的样子，忘了自己本来是谁"},
+    {text:"你在关系里最渴望被看见的是？", a:"你为这段关系付出的努力和心意", b:"你真实的样子，包括那些你藏起来的部分"},
+    {text:"对方做什么会让你感到真正被接纳？", a:"明确告诉你，他认可你这个人，不只是你的付出", b:"在你没有表现、没有努力的时候，还是喜欢你"},
+    {text:"你最害怕在关系里暴露的是？", a:"自己其实没有看起来那么能干和体贴", b:"真实的自己，因为不确定真实的自己够不够好"},
+    {text:"什么样的关系让你感到最安全？", a:"对方会主动说出他对你的欣赏和认可", b:"对方让你感到不需要「表演」，做自己就够了"}
+  ]}
+};
+
+const TYPES = {
+  SE:{name:"安全型",en:"Secure Attachment",belief:"「关系是安全的，我可以真实地存在。」",desc:"你在关系里相对稳定，能够表达需求，也能接受边界。你相信冲突可以被处理，关系有足够的韧性承载真实的你。这不代表你没有脆弱，而是你有能力带着脆弱留在关系里。",theme:"theme-se",cls:"c-se"},
+  AN:{name:"焦虑型",en:"Anxious Attachment",belief:"「你会不会不要我了？」",desc:"你对关系的细节极度敏感，容易在对方的沉默或距离里读到危险信号。你渴望确认，渴望被选择。这不是缺陷——这是一颗真实渴望连接的心，只是还没有找到可以安放的地方。",theme:"theme-an",cls:"c-an"},
+  AV:{name:"回避型",en:"Dismissive-Avoidant",belief:"「我自己可以处理，我不需要依赖谁。」",desc:"你在关系里优先保护自己的独立性。当亲密靠得太近，你会本能地退后一步。这不是你不在乎，而是独处和空间是你调节情绪、找回自我的方式。",theme:"theme-av",cls:"c-av"},
+  FA:{name:"恐惧型",en:"Fearful-Avoidant",belief:"「我想靠近你，但靠近让我害怕。」",desc:"你同时渴望亲密又害怕亲密。你可能有过「亲近的人也是伤害自己的人」的经历，这让你在关系里陷入一种难以解决的矛盾——靠近有风险，离开又孤独。",theme:"theme-fa",cls:"c-fa"},
+  FW:{name:"讨好型",en:"Fawn Response",belief:"「只要我够好，别人就不会离开。」",desc:"你习惯把别人的感受放在自己之前，用照顾和付出来维持关系的稳定。你很少开口说自己需要什么，因为你隐约觉得，需求可能会让人离开。",theme:"theme-fw",cls:"c-fw"}
+};
+
+const WORDS = {
+  SE:{
+    "和我一起":{trigger:"你更渴望的是真实的并肩，而不只是被支持或被信任。你需要的不是旁观者，而是同行者。",deep:"「和我一起」打开的是一扇门——你不是一个人在撑。这句话不需要对方强大，只需要他<strong>真实地在场</strong>，和你站在同一侧。",hear:"不需要说很多，真实地「在」就够了。出现本身，就是最有力的回应。"},
+    "相信我":{trigger:"你更看重被信任、被尊重自主性，胜过被陪伴。你需要的不是有人替你，而是有人相信你。",deep:"被信任对你来说是一种深层的尊重信号。「相信我」说的是：<strong>我看见你是一个完整的人</strong>，我不需要用怀疑来保护自己。",hear:"说出这句话之后，用一致的行为去兑现它。信任是累积的，不是宣告一次就永久生效的。"}
+  },
+  AN:{
+    "抱抱我":{trigger:"当你感到不安，语言有时太慢——你需要的是一个直达神经的安抚信号，而不是解释。",deep:"被拥抱对你来说不只是一个动作，而是一种<strong>具体的存在确认</strong>。它绕过了所有分析，直接告诉你的身体：现在是安全的，他还在。",hear:"拥抱要真实、完整，不要敷衍。一个心不在焉的拥抱，比没有更让你不安。"},
+    "选择我":{trigger:"你最深的不安，是不知道自己在对方心里是不是唯一的、不可替代的。你需要的是明确的宣示。",deep:"「选择我」不是要求你是最好的——而是需要知道，<strong>在有选择的情况下，他选了你</strong>。这个主动性本身，就是答案。",hear:"不要用「当然啊」来回应。认真地、清晰地说出来：我选择你。"}
+  },
+  AV:{
+    "给我空间":{trigger:"当关系靠得太近，你最先感受到的是窒息，而不是温暖。你需要对方退后，才能找回自己。",deep:"「给我空间」的潜台词不是「我不想要你」，而是<strong>「我需要先找回我自己，才能回到这段关系」</strong>。距离是你的呼吸方式。",hear:"给出空间后，不要用沉默来惩罚他。空间之后的温柔在场，是他真正需要的。"},
+    "慢慢来":{trigger:"比起被推走，「被催促靠近」更让你不舒服。你需要的是被允许用自己的节奏存在。",deep:"「慢慢来」解除了一个隐性压力：必须立刻回应、立刻亲密、立刻表态。被允许慢下来，他<strong>反而更有可能真的靠近</strong>。",hear:"说了「慢慢来」就真的慢下来。言行一致，是他判断关系是否安全的标准。"}
+  },
+  FA:{
+    "我在这里":{trigger:"你最害怕的不是被拒绝，而是因为你忽冷忽热，对方放弃了等待。你需要的是稳定的存在，而不是追逐。",deep:"「我在这里」之所以有效，是因为它<strong>既没有强迫靠近，也没有推开</strong>——它只是稳定地在那里，把决定距离的主权还给你。",hear:"稳定、可预测、不施压——这三点比任何温柔的话都更有说服力。"},
+    "靠近我":{trigger:"你内心有一部分极度渴望有人主动邀请你，因为你自己很难迈出那一步。你需要的是门开着的信号。",deep:"听到「靠近我」，你的防御和依附系统会同时被激活。但如果说这句话的人是稳定的，这句话本身就成了一种示范：<strong>靠近是安全的，你可以试试。</strong>",hear:"说完之后给他时间。不要因为他没有立刻靠近就收回邀请——等待本身也是安全感的一部分。"}
+  },
+  FW:{
+    "我认可你":{trigger:"你花了大量精力证明自己值得被留下，却很少听到有人直接说：你本身就够了。",deep:"「我认可你」直接切断了那个循环——不是因为你做了什么，而是<strong>你本身就值得被认可</strong>。这句话让他可以暂时停下来，不再表演。",hear:"说出这句话时要具体——认可什么？他需要听到细节，模糊的认可容易被他的内心过滤掉。"},
+    "你可以做自己":{trigger:"你更深的疲惫不是付出太多，而是长期扮演别人期待的样子，忘了真实的自己是谁。",deep:"「你可以做自己」是一张许可证——你不需要表演，<strong>真实的你在这里是被允许存在的</strong>。对你来说，「做自己」本身充满风险，这句话回应的正是这个恐惧。",hear:"之后用行动证明它。当他第一次真的「做自己」时，你的反应决定了他下次还敢不敢。"}
+  }
+};
+
+let scores={SE:0,AN:0,AV:0,FA:0,FW:0};
+let wordScores={w1:0,w2:0};
+let currentQ=0, round=1, winType=null;
+let r2Questions=[], r2Idx=0;
+const KEYS=['A','B','C','D','E'];
+
+function startQuiz(){
+  scores={SE:0,AN:0,AV:0,FA:0,FW:0};
+  wordScores={w1:0,w2:0};
+  currentQ=0; round=1; winType=null;
+  show('screen-quiz'); renderQ();
+}
+
+function renderQ(){
+  const total=14;
+  if(round===1){
+    const prog=((currentQ)/total)*100;
+    document.getElementById('prog-label').textContent='第一轮 · 了解你的模式';
+    document.getElementById('prog-count').textContent=(currentQ+1)+' / 14';
+    document.getElementById('prog-fill').style.width=prog+'%';
+    const q=Q1[currentQ];
+    document.getElementById('q-phase').textContent='Q'+(currentQ+1);
+    document.getElementById('q-text').textContent=q.text;
+    const wrap=document.getElementById('opts-wrap');
+    wrap.className='opts'; wrap.innerHTML='';
+    q.opts.forEach((o,i)=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=`<span class="opt-key">${KEYS[i]}</span><span class="opt-text">${o.text}</span>`;
+      b.onclick=()=>pickR1(o.type,b);
+      wrap.appendChild(b);
+    });
+  } else {
+    const base=8;
+    const prog=((base+r2Idx)/total)*100;
+    document.getElementById('prog-label').textContent='第二轮 · 找到你的安全词';
+    document.getElementById('prog-count').textContent=(base+r2Idx+1)+' / 14';
+    document.getElementById('prog-fill').style.width=prog+'%';
+    const q=r2Questions[r2Idx];
+    document.getElementById('q-phase').textContent='Q'+(base+r2Idx+1);
+    document.getElementById('q-text').textContent=q.text;
+    const wrap=document.getElementById('opts-wrap');
+    wrap.className='opts opts-2'; wrap.innerHTML='';
+    [{text:q.a,w:'w1'},{text:q.b,w:'w2'}].forEach((o,i)=>{
+      const b=document.createElement('button');
+      b.className='opt';
+      b.innerHTML=`<span class="opt-key">${KEYS[i]}</span><span class="opt-text">${o.text}</span>`;
+      b.onclick=()=>pickR2(o.w,b);
+      wrap.appendChild(b);
+    });
+  }
+}
+
+function pickR1(type,btn){
+  document.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  scores[type]+=2;
+  setTimeout(()=>{
+    currentQ++;
+    if(currentQ<Q1.length){ renderQ(); }
+    else { startRound2(); }
+  },300);
+}
+
+function startRound2(){
+  let max=0;
+  Object.entries(scores).forEach(([k,v])=>{ if(v>max){max=v;winType=k;} });
+  round=2; wordScores={w1:0,w2:0};
+  r2Questions=Q2[winType].questions; r2Idx=0;
+  renderQ();
+}
+
+function pickR2(w,btn){
+  document.querySelectorAll('.opt').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  wordScores[w]+=2;
+  setTimeout(()=>{
+    r2Idx++;
+    if(r2Idx<r2Questions.length){ renderQ(); }
+    else { showResult(); }
+  },300);
+}
+
+function showResult(){
+  const t=TYPES[winType];
+  const wdata=Q2[winType];
+  document.getElementById('type-block').className='result-type-block '+t.theme;
+  document.getElementById('rt-name').textContent=t.name;
+  document.getElementById('rt-en').textContent=t.en;
+  document.getElementById('rt-belief').textContent=t.belief;
+  document.getElementById('rt-desc').textContent=t.desc;
+
+  let resultWord=null, dual=false;
+  if(wordScores.w1>wordScores.w2){ resultWord=wdata.w1; }
+  else if(wordScores.w2>wordScores.w1){ resultWord=wdata.w2; }
+  else { dual=true; }
+
+  const wb=document.getElementById('word-block');
+  if(!dual){
+    const wi=WORDS[winType][resultWord];
+    wb.innerHTML=`
+      <div class="rw-label">你的安全词</div>
+      <div class="rw-word ${t.cls}">${resultWord}</div>
+      <div class="rw-sub">— 说给${t.name}的人听</div>
+      <div class="rw-divider"></div>
+      <div class="rw-section">
+        <div class="rw-slabel">为什么是这句话</div>
+        <p class="rw-text">${wi.trigger}</p>
+      </div>
+      <div class="rw-section">
+        <div class="rw-slabel">深层含义</div>
+        <p class="rw-text">${wi.deep}</p>
+      </div>
+      <div class="rw-section">
+        <div class="rw-slabel">如何回应</div>
+        <p class="rw-text">${wi.hear}</p>
+      </div>
+    `;
+  } else {
+    const wi1=WORDS[winType][wdata.w1], wi2=WORDS[winType][wdata.w2];
+    wb.innerHTML=`
+      <div class="rw-label">你同时需要两个安全词</div>
+      <div class="dual-grid">
+        <div class="dual-card">
+          <div class="dual-word ${t.cls}">${wdata.w1}</div>
+          <div class="dual-text">${wi1.trigger}</div>
+        </div>
+        <div class="dual-card">
+          <div class="dual-word ${t.cls}">${wdata.w2}</div>
+          <div class="dual-text">${wi2.trigger}</div>
+        </div>
+      </div>
+      <div class="rw-divider"></div>
+      <p class="rw-text">你在两种需求之间几乎同等强烈——有时需要被并肩，有时需要被信任。这两种都是真实的，不需要选一个。</p>
+    `;
+  }
+  show('screen-result');
+}
+
+function restartQuiz(){
+  scores={SE:0,AN:0,AV:0,FA:0,FW:0};
+  wordScores={w1:0,w2:0};
+  currentQ=0; round=1; winType=null;
+  show('screen-intro');
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+</script>
+</body>
+</html>
